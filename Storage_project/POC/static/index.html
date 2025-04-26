@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input[type="file"], input[type="text"] {
+            margin-bottom: 10px;
+        }
+        button {
+            margin-top: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+    </style>
+    <script>
+        const apiUrl = 'http://localhost:8000';
+
+        // Call listFiles for "uploads" path on page load
+        window.onload = function() {
+            get_files_in_folder("")
+        };
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const pathInput = document.getElementById('pathInput');
+            const file = fileInput;
+            const path = pathInput.value;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${apiUrl}/upload/${encodeURIComponent(path)}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            document.getElementById('uploadStatus').textContent = `Uploaded: ${result.filename}`;
+        }
+
+        async function get_files_in_folder(name_of_folder) {
+            var default_path = "/storage";
+            const pathInput = document.getElementById('pathInput');
+            console.log(pathInput)
+            const path = pathInput.textContent;
+            if(!path[path.length-1] === "/"){
+                path = path + "/"
+            }
+            console.log(path)
+            var url = default_path + path + name_of_folder
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                for (const [name, type] of Object.entries(data)) {
+                    const listItem = document.createElement('li');  
+                    //listItem.style.cursor = 'pointer';
+
+                    if (type === 'file') {
+                        var link_url = "/file?file_path=" + path + name_of_folder + "/" + name;
+                        // listItem.textContent = `<a href="${link_url}" target="_blank">${name}</a>`;
+
+                        // Create the anchor element
+                        const anchor = document.createElement("a");
+                        anchor.href = link_url;
+                        anchor.textContent = name;
+
+                        listItem.appendChild(anchor);
+                    } else if (type === 'folder') {
+                        // listItem.textContent = `<a href="#" onclick="${get_files_in_folder("/"+name)}">${name}</a>`;
+
+                        // Create the anchor element
+                        const anchor = document.createElement("a");
+                        anchor.href = "#";
+                        anchor.textContent = name;
+
+                        // Set the event listener properly
+                        anchor.addEventListener("click", function(event) {
+                            event.preventDefault(); // Stops default link behavior
+                            get_files_in_folder(name);
+                        });
+
+                        listItem.appendChild(anchor);
+                    }
+
+                    fileList.appendChild(listItem);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            //  path updated after successful fetch
+            pathInput.textContent = path + name_of_folder;
+        }
+
+        // async function deleteFile() {
+        //     const filename = document.getElementById('deleteFilename').value;
+
+        //     const response = await fetch(`${apiUrl}/delete/${filename}`, {
+        //         method: 'DELETE'
+        //     });
+
+        //     const result = await response.json();
+        //     document.getElementById('deleteStatus').textContent = result.message || result.error;
+        // }
+    </script>
+</head>
+<body>
+    <h1>File Explorer</h1>
+
+    <!-- Upload File -->
+    <h2>Upload File</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Upload</button>
+    <p id="uploadStatus"></p>
+
+    <!-- List Files -->
+    <h3>Path</h3>
+    <p id="pathInput">/</p>
+    <h1>Files</h1>
+    <ul id="fileList"></ul>
+
+    <div>
+        <h2>Test 1: Test get root folder files</h2>
+        <h2>In_progress</h2>
+    </div>
+
+</body>
+</html>

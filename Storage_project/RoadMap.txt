@@ -1,0 +1,11 @@
+Take Baby stesps
+
+Phase 1: 
+Use Fast API APP for creating Endponits to 
+- List Files in a Folder
+    List endpoint should read file name from path, and should validate there should not be any script or "." or ".." in path
+- Get File
+    get file should should show file if less than 25mb or download it.
+- Upload File
+    Upload file should read path form url path to upload.
+- (No Delete yet, we don't want to delete files accidently)

@@ -9,3 +9,25 @@ Use Fast API APP for creating Endponits to
 - Upload File
     Upload file should read path form url path to upload.
 - (No Delete yet, we don't want to delete files accidently)
+
+''' main Idea
+ Read configs
+ - Get For_Storage_Primary location (required)
+ - Get For_Storage_Secondary location (required)
+
+ On Start
+ - Check if config files exist, if not create one in home folder
+ - Ask for Config locations,
+ - both Location should cannot be same. (required)
+ - if only one location provided show warning, only one location exists
+ - Test App has permission to create file in the folder
+ 
+ Can start simulteneously
+ - Start comparing both location to see difference in file and store result in "storage_diff.txt"
+ - store all the file location in a file so search can be implemented
+
+Create APIs for
+- Get Files in a folder
+- Get File
+- Create a folder
+'''

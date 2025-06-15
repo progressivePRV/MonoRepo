@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input[type="file"], input[type="text"] {
+            margin-bottom: 10px;
+        }
+        button {
+            margin-top: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+    </style>
+    <script>
+        const apiUrl = 'http://localhost:8000';
+
+        // Call listFiles for "uploads" path on page load
+        window.onload = function() {
+            get_files_in_folder("")
+        };
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const pathInput = document.getElementById('pathInput');
+            const file = fileInput;
+            const path = pathInput.value;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${apiUrl}/upload/${encodeURIComponent(path)}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            document.getElementById('uploadStatus').textContent = `Uploaded: ${result.filename}`;
+        }
+
+        async function get_files_in_folder(name_of_folder) {
+
+            console.log("name_of_folder: ",name_of_folder)
+            
+            fetch("/listFiles?path=" + name_of_folder)
+            .then(response => response.json())
+            .then(data => {
+                // Sample response object
+                // const response = {
+                // path: "",
+                // file_or_folders: [
+                //     { name: "Asset", is_file: false },
+                //     { name: "components", is_file: false },
+                //     { name: "Phase1.py", is_file: true }
+                // ]
+                // };
+
+                // Set the input path value
+                document.getElementById("pathInput").innerHTML = data.path;
+
+                // Generate file/folder list
+                const fileList = document.getElementById("fileList");
+                fileList.innerHTML = ""; // Clear any existing list
+
+                data.file_or_folders.forEach(item => {
+                const li = document.createElement("li");
+
+                if (item.is_file) {
+                    const link = document.createElement("a");
+                    link.href = `/Files/${data.path}/${item.name}`; // Construct file path
+                    link.textContent = item.name;
+                    link.target = "_blank"; // Open in new tab
+                    link.rel = "noopener noreferrer"; // For security
+                    li.appendChild(link);
+                } else {
+                    const folderLink = document.createElement("span");
+                    folderLink.textContent = item.name;
+                    folderLink.style.cursor = "pointer";
+                    folderLink.onclick = () => get_files_in_folder(`${data.path}/${item.name}`);
+                    li.appendChild(folderLink);
+                }
+
+                fileList.appendChild(li);
+                });
+
+               
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // async function deleteFile() {
+        //     const filename = document.getElementById('deleteFilename').value;
+
+        //     const response = await fetch(`${apiUrl}/delete/${filename}`, {
+        //         method: 'DELETE'
+        //     });
+
+        //     const result = await response.json();
+        //     document.getElementById('deleteStatus').textContent = result.message || result.error;
+        // }
+    </script>
+</head>
+<body>
+    <h1>File Explorer</h1>
+
+    <!-- Upload File -->
+    <h2>Upload File</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Upload</button>
+    <p id="uploadStatus"></p>
+
+    <!-- List Files -->
+    <h3>Path</h3>
+    <span>Path: </span><span id="pathInput"></span>
+    <h1>Files</h1>
+    <ul id="fileList"></ul>
+
+    <div>
+        <h2>Test 1: Test get root folder files</h2>
+        <h2>In_progress</h2>
+    </div>
+
+</body>
+</html>
